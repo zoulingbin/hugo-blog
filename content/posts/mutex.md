@@ -1,6 +1,6 @@
 ---
 title: "Mutex解析"
-date: 2021-06-28T15:27:17+08:00
+date: 2021-06-05T15:27:17+08:00
 tags: ["Go", "标准库", "并发编程"]
 author: zoulingbin
 description: 鸟窝大佬的go并发编程阅读记录，从初版mutex到第四版的源码分析
@@ -19,40 +19,40 @@ categories: ["Go并发编程"]
 **初版的互斥锁**
 ```go
    // CAS操作，当时还没有抽象出atomic包
-    func cas(val *int32, old, new int32) bool
-    func semacquire(*int32)
-    func semrelease(*int32)
-    // 互斥锁的结构，包含两个字段
-    type Mutex struct {
-        key  int32 // 锁是否被持有的标识
-        sema int32 // 信号量专用，用以阻塞/唤醒goroutine
-    }
-    
-    // 保证成功在val上增加delta的值
-    func xadd(val *int32, delta int32) (new int32) {
-        for {
-            v := *val
-            if cas(val, v, v+delta) {
-                return v + delta
-            }
+func cas(val *int32, old, new int32) bool
+func semacquire(*int32)
+func semrelease(*int32)
+// 互斥锁的结构，包含两个字段
+type Mutex struct {
+    key  int32 // 锁是否被持有的标识
+    sema int32 // 信号量专用，用以阻塞/唤醒goroutine
+}
+
+// 保证成功在val上增加delta的值
+func xadd(val *int32, delta int32) (new int32) {
+    for {
+        v := *val
+        if cas(val, v, v+delta) {
+            return v + delta
         }
-        panic("unreached")
     }
-    
-    // 请求锁
-    func (m *Mutex) Lock() {
-        if xadd(&m.key, 1) == 1 { //标识加1，如果等于1，成功获取到锁
-            return
-        }
-        semacquire(&m.sema) // 否则阻塞等待
+    panic("unreached")
+}
+
+// 请求锁
+func (m *Mutex) Lock() {
+    if xadd(&m.key, 1) == 1 { //标识加1，如果等于1，成功获取到锁
+        return
     }
-    
-    func (m *Mutex) Unlock() {
-        if xadd(&m.key, -1) == 0 { // 将标识减去1，如果等于0，则没有其它等待者
-            return
-        }
-        semrelease(&m.sema) // 唤醒其它阻塞的goroutine
-    }    
+    semacquire(&m.sema) // 否则阻塞等待
+}
+
+func (m *Mutex) Unlock() {
+    if xadd(&m.key, -1) == 0 { // 将标识减去1，如果等于0，则没有其它等待者
+        return
+    }
+    semrelease(&m.sema) // 唤醒其它阻塞的goroutine
+}    
 ```
 
 CAS 指令将**给定的值和一个内存地址中的值进行比较**，如果它们是同一个值，就使用新值替换内存地址中的值，这个操作是原子性的。**原子性保证这个指令总是基于最新的值进行计算，如果同时有其它线程已经修改了这个值，那么，CAS 会返回失败**。
@@ -164,4 +164,25 @@ func (m *Mutex) Lock() {
         }
     }
 ```
+
+
+第 3 行是尝试将持有锁的标识设置为未加锁的状态，这是通过减 1 而不是将标志位置零的方式实现。第 4 到 6 行还会检测原来锁的状态是否已经未加锁的状态，如果是 Unlock 一个未加锁的 Mutex 会直接 panic。
+第10-12行，如果阻塞在该锁上的goroutine数目为0或者mutex处于lock或者唤醒状态，则返回。
+第13-17行，如果有等待者，并且没有唤醒的 waiter，那就需要唤醒一个等待的 waiter。在唤醒之前，需要将 waiter 数量减 1，并且将 mutexWoken 标志设置上，这样，Unlock 就可以返回了。
+
+相对于初版的设计，这次的改动主要就是，新来的`goroutine`也有机会先获取到锁，甚至一个`goroutine`可能连续获取到锁，打破了先来先得的逻辑。
+
+### 第三版
+第三版的改动主要是：新来的`goroutine`或者是被唤醒的`goroutine`首次获取不到锁，它们就会通过自旋的方式，尝试检查锁是否被释放。在尝试一定的自旋次数后，再执行原来的逻辑。
+
+### 第四版
+第四版主要解决的问题是：解决饥饿。因为从第二版开始，就有新来的`goroutine`加入到抢占锁，所以有可能每次都会被新来的`goroutine`抢占到锁，在极端情况下，等待的`goroutine`有可能一直获取不到锁，这就是**饥饿问题**。
+
+由于代码过多，且目前能力不够，就先总结，留个坑，以后持续关注这个问题。
+
+![](https://static001.geekbang.org/resource/image/e0/76/e0c23794c8a1d355a7a183400c036276.jpg)
+
+目前go关于mutex的设计是：让不公平的等待时间限制在1毫秒，`state`字段增加了`mutexStarving`(饥饿标记)，这就意味着，一旦等待者等待的时间超过了这个阈值，Mutex 的处理就有可能进入饥饿模式，优先让等待者先获取到锁。
+
+通过加入饥饿模式，可以避免把机会全都留给新来的 goroutine，保证了请求锁的 goroutine 获取锁的公平性，对于我们使用锁的业务代码来说，不会有业务一直等待锁不被处理。
 

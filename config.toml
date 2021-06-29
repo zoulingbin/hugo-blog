@@ -2,7 +2,7 @@ baseURL = "https://zoulingbin.github.io/"
 languageCode = "zh-cn"
 title = "邹灵彬的博客"
 theme = "LoveIt"
-defaultTheme = "auto"
+defaultTheme = "dark"
 [params]
   # LoveIt 主题版本
   version = "0.2.X"
