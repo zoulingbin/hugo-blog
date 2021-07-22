@@ -204,3 +204,5 @@ func (rw *RWMutex) Lock() {
     }
 }
 ```
+当一个 `writer`释放锁的时候，它会再次反转`readerCount`字段。可以肯定的是，因为当前锁由`writer`持有，所以，`readerCount`字段是反转过的，并且减去了`rwmutexMaxReaders`这个常数，变成了负数。所以，这里的反转方法就是给它增加 `rwmutexMaxReaders`这个常数值。
+在`RWMutex`的`Unlock`返回之前，需要把内部的互斥锁释放。释放完毕后，其他的`writer`才可以继续竞争这把锁。
