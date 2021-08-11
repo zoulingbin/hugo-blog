@@ -6,6 +6,7 @@ author: zoulingbin
 categories: ["Go并发编程"]
 description: 鸟窝大佬的go并发编程阅读记录，WaitGroup的实现原理
 ---
+<!--more-->
 
 ### WaitGroup的基本用法
 WaitGroup提供了三个方法：

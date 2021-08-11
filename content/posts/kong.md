@@ -5,6 +5,7 @@ description: kong使用笔记
 author: zoulingbin
 tags: [gateway]
 ---
+<!--more-->
 
 ### 什么是kong
 Kong是云原生、高效、可扩展、分布式的微服务抽象层，被称为API网关，或者API中间件。kong通过插件的形式提供负载均衡，身份验证，日志记录，速率限制等功能。
