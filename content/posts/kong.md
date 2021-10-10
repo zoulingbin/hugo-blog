@@ -55,3 +55,7 @@ Consumer对象表示服务的使用者或用户。
 
 ### Konga
 `konga`是一个开源的[部署管理面板](https://github.com/pantsel/konga)。
+
+### 搭建postgreSQL + Kong + Konga
+
+这里使用docker的方式部署，先安装
