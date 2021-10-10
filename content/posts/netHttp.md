@@ -89,7 +89,24 @@ func ListenAndServe(addr string, handler Handler) error {
 }
 ```
 
-通过示例代码和`http.ListenAndServe`源码可以看到，该方法创建一个`Server`结构，调用`Server.ListenAndServe`对外提供服务，
+通过示例代码和`http.ListenAndServe`源码可以看到，该方法创建一个`Server`结构，调用`Server.ListenAndServe`对外提供服务。接下来再看`Server.ListenAdnServer`源码：
+```go
+func (srv *Server) ListenAndServe() error {
+	if srv.shuttingDown() {
+		return ErrServerClosed
+	}
+	addr := srv.Addr
+	if addr == "" {
+		addr = ":http"
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+	return srv.Serve(ln)
+}
+```
+`Server.ListenAdnServer`方法先定义了监听信息，再调用`Serve`方法。
 
 
 
