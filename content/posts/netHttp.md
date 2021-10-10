@@ -106,7 +106,10 @@ func (srv *Server) ListenAndServe() error {
 	return srv.Serve(ln)
 }
 ```
-`Server.ListenAdnServer`方法先定义了监听信息，再调用`Serve`方法。
+`Server.ListenAdnServer`方法先定义了监听信息，再调用`Serve`方法。在`Serve`方法中，用一个for循环，通过`l.Accept`不断接收从客户端传来的请求连接。当接收到一个新的请求时，通过`srv.Conn``
+创建一个连接结构(http.conn)，并创建一个`goroutine`去处理这个请求。
+
+
 
 
 
