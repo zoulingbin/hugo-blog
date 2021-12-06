@@ -1,5 +1,5 @@
 ---
-title: "Once"
+title: "Once的用法与实现"
 date: 2021-12-03T17:10:32+08:00
 tags: [GO, 并发编程]
 description: sync.Once用法记录
