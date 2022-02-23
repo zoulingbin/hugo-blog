@@ -32,3 +32,5 @@ https://shuwoom.com/?p=826
 http://dockone.io/article/2434665
 
 https://www.codedump.info/post/20180921-raft/
+
+https://zhuanlan.zhihu.com/p/32052223
