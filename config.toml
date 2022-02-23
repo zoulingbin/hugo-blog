@@ -107,6 +107,8 @@ defaultTheme = "dark"
           # LoveIt 新增 | 0.1.1
           enable = true
           owner = "zoulingbin"
+          admin = "zoulingbin"
+          id = "location.href"
           repo = "https://github.com/zoulingbin/blogtalk"
           clientId = "3acf1dd78f6663857c70"
           clientSecret = "eb2db7a863907c3dcea69a5c44d3536e36b9192c"
