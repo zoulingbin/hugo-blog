@@ -99,3 +99,14 @@ defaultTheme = "dark"
 
   [params.social]
       GitHub = "zoulingbin"
+
+  [params.page.comment]
+        enable = true
+        # Gitalk 评论系统设置
+        [params.page.comment.gitalk]
+          # LoveIt 新增 | 0.1.1
+          enable = true
+          owner = "zoulingbin"
+          repo = "https://github.com/zoulingbin/blogtalk"
+          clientId = "3acf1dd78f6663857c70"
+          clientSecret = "eb2db7a863907c3dcea69a5c44d3536e36b9192c"
